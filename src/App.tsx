@@ -1,24 +1,36 @@
-import React from 'react';
-import logo from './logo.svg';
+import React, { useState, useCallback } from 'react';
 import './App.css';
+import FilterComponent from './components/FilterComponent';
+import SummaryComponent from './components/SummaryComponent';
+import TransactionList from './components/TransactionList';
+import { useTransactions } from './hooks/useTransactions';
+import { useFilteredTransactions } from './hooks/useFilteredTransactions';
 
 function App() {
+  const { transactions, loading, error } = useTransactions();
+  const [startDate, setStartDate] = useState<string>('');
+  const [endDate, setEndDate] = useState<string>('');
+
+  const handleFilter = useCallback((start: string, end: string) => {
+    setStartDate(start);
+    setEndDate(end);
+  }, []);
+
+  const filteredTransactions = useFilteredTransactions({
+    transactions,
+    startDate,
+    endDate,
+  });
+
+  if (loading) return <div>Carregando transações...</div>;
+  if (error) return <div>{error}</div>;
+
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+    <div>
+      <h1>Payment Transactions Dashboard</h1>
+      <FilterComponent onFilter={handleFilter} />
+      <SummaryComponent transactions={filteredTransactions} />
+      <TransactionList transactions={filteredTransactions} />
     </div>
   );
 }
